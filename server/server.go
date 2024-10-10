@@ -46,7 +46,11 @@ func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.Chit
 }
 
 func main() {
-	cs := &ChittyChatServer{}
+
+	cs := &ChittyChatServer{
+		users:          make(map[string]proto.ChittyChat_JoinServerServer),
+		server_lamport: 0,
+	}
 	cs.start_server()
 }
 
