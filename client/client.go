@@ -17,6 +17,6 @@ func main() {
 
 	client := proto.NewChittyChatClient(conn)
 
-	ts, err := client.SendMessage(context.Background(), &proto.Message{Msg: "Hello World!", Lamport: 1})
+	_, err = client.SendMessage(context.Background(), &proto.Message{Msg: "Hello World!", Lamport: 1})
 
 }
