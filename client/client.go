@@ -25,5 +25,14 @@ func main() {
 		Lamport: 0,
 	}
 
+	stream, err := client.JoinServer(context.Background(), user)
+
+	for {
+		msg, _ := stream.Recv()
+		if msg == nil {
+			continue
+		}
+		fmt.Printf("%s : %s (at time %d)", msg.Username, msg.Msg, msg.Lamport)
+	}
 
 }
