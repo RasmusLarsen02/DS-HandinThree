@@ -16,6 +16,7 @@ type ChittyChatServer struct {
 }
 
 func (cs *ChittyChatServer) SendMessage(ctx context.Context, in *proto.Message) (*proto.Empty, error) {
+	cs.Broadcast(in)
 	return &proto.Empty{}, nil
 }
 
