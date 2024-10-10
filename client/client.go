@@ -17,7 +17,13 @@ func main() {
 		log.Fatalf("Not working")
 	}
 
+	currentUser, err := user.Current()
+
 	client := proto.NewChittyChatClient(conn)
+	user := &proto.UserJoin{
+		Name:    currentUser.Name,
+		Lamport: 0,
+	}
 
 	_, err = client.SendMessage(context.Background(), &proto.Message{Msg: "Hello World!", Lamport: 1})
 
