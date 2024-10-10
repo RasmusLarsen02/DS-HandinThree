@@ -26,6 +26,24 @@ func (cs *ChittyChatServer) Broadcast(message *proto.Message) {
 	}
 }
 
+func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.ChittyChat_JoinServerServer) error {
+	if cs.users[client.Name] != nil {
+		log.Fatalf("User already exists")
+	}
+	cs.users[client.Name] = stream
+	cs.server_lamport++
+
+	message := &proto.Message{
+		Username: client.Name,
+		Msg:      "User Joined ",
+		Lamport:  cs.server_lamport,
+	}
+
+	cs.Broadcast(message)
+
+	return nil
+}
+
 func main() {
 	cs := &ChittyChatServer{}
 	cs.start_server()
