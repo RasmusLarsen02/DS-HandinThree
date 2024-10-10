@@ -17,7 +17,7 @@ func main() {
 		log.Fatalf("Not working")
 	}
 
-	currentUser, err := user.Current()
+	currentUser, _ := user.Current()
 
 	client := proto.NewChittyChatClient(conn)
 	user := &proto.UserJoin{
@@ -25,7 +25,7 @@ func main() {
 		Lamport: 0,
 	}
 
-	stream, err := client.JoinServer(context.Background(), user)
+	stream, _ := client.JoinServer(context.Background(), user)
 
 	for {
 		msg, _ := stream.Recv()
