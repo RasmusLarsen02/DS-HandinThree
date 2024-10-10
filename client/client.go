@@ -25,6 +25,5 @@ func main() {
 		Lamport: 0,
 	}
 
-	_, err = client.SendMessage(context.Background(), &proto.Message{Msg: "Hello World!", Lamport: 1})
 
 }
