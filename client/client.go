@@ -3,7 +3,9 @@ package main
 import (
 	proto "ChittyChat/grpc"
 	"context"
+	"fmt"
 	"log"
+	"os/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
