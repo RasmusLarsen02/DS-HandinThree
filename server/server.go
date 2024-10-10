@@ -11,6 +11,8 @@ import (
 
 type ChittyChatServer struct {
 	proto.UnimplementedChittyChatServer
+	users          map[string]proto.ChittyChat_JoinServerServer
+	server_lamport int32
 }
 
 func (cs *ChittyChatServer) SendMessage(ctx context.Context, in *proto.Message) (*proto.Empty, error) {
