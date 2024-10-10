@@ -9,10 +9,17 @@ message Message {
     int32 lamport = 2; 
 }
 
+message UserJoin {
+    string name = 1;
+    int32 lamport = 2;
+}
+
 message Empty {
 
 }
 
 service ChittyChat {
     rpc SendMessage (Message) returns (Empty);
+    rpc GetMessages (Empty) returns (stream Message);
+    rpc JoinServer (UserJoin) returns (Empty);
 }

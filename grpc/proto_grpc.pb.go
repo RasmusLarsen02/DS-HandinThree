@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ChittyChat_SendMessage_FullMethodName = "/proto.ChittyChat/SendMessage"
+	ChittyChat_GetMessages_FullMethodName = "/proto.ChittyChat/GetMessages"
+	ChittyChat_JoinServer_FullMethodName  = "/proto.ChittyChat/JoinServer"
 )
 
 // ChittyChatClient is the client API for ChittyChat service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChittyChatClient interface {
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error)
+	GetMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error)
+	JoinServer(ctx context.Context, in *UserJoin, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type chittyChatClient struct {
@@ -47,11 +51,42 @@ func (c *chittyChatClient) SendMessage(ctx context.Context, in *Message, opts ..
 	return out, nil
 }
 
+func (c *chittyChatClient) GetMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ChittyChat_ServiceDesc.Streams[0], ChittyChat_GetMessages_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[Empty, Message]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChittyChat_GetMessagesClient = grpc.ServerStreamingClient[Message]
+
+func (c *chittyChatClient) JoinServer(ctx context.Context, in *UserJoin, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, ChittyChat_JoinServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChittyChatServer is the server API for ChittyChat service.
 // All implementations must embed UnimplementedChittyChatServer
 // for forward compatibility.
 type ChittyChatServer interface {
 	SendMessage(context.Context, *Message) (*Empty, error)
+	GetMessages(*Empty, grpc.ServerStreamingServer[Message]) error
+	JoinServer(context.Context, *UserJoin) (*Empty, error)
 	mustEmbedUnimplementedChittyChatServer()
 }
 
@@ -64,6 +99,12 @@ type UnimplementedChittyChatServer struct{}
 
 func (UnimplementedChittyChatServer) SendMessage(context.Context, *Message) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedChittyChatServer) GetMessages(*Empty, grpc.ServerStreamingServer[Message]) error {
+	return status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
+}
+func (UnimplementedChittyChatServer) JoinServer(context.Context, *UserJoin) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinServer not implemented")
 }
 func (UnimplementedChittyChatServer) mustEmbedUnimplementedChittyChatServer() {}
 func (UnimplementedChittyChatServer) testEmbeddedByValue()                    {}
@@ -104,6 +145,35 @@ func _ChittyChat_SendMessage_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChittyChat_GetMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChittyChatServer).GetMessages(m, &grpc.GenericServerStream[Empty, Message]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChittyChat_GetMessagesServer = grpc.ServerStreamingServer[Message]
+
+func _ChittyChat_JoinServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserJoin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChittyChatServer).JoinServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChittyChat_JoinServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChittyChatServer).JoinServer(ctx, req.(*UserJoin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChittyChat_ServiceDesc is the grpc.ServiceDesc for ChittyChat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,7 +185,17 @@ var ChittyChat_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SendMessage",
 			Handler:    _ChittyChat_SendMessage_Handler,
 		},
+		{
+			MethodName: "JoinServer",
+			Handler:    _ChittyChat_JoinServer_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetMessages",
+			Handler:       _ChittyChat_GetMessages_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "grpc/proto.proto",
 }
