@@ -38,8 +38,39 @@ func main() {
 	}
 
 	stream, _ := client.JoinServer(context.Background(), user)
+	wg.Add(2)
 
+	go Listen(stream, msgCh, &wg)
+
+	go ReadInput(inputCh, &wg)
+
+	go PrintMessages(outputCh)
+
+	for {
+		select {
+		case msg := <-msgCh:
+			mu.Lock()
+			str := fmt.Sprintf("Message: %s: %s (Lamport: %d)", msg.Username, msg.Msg, msg.Lamport)
+			outputCh <- str
+			mu.Unlock()
+
+		case input, ok := <-inputCh:
+			if !ok {
+				close(outputCh)
+				fmt.Println("Exiting...")
+				return
+			}
+			msg1 := &proto.Message{
+				Username: currentUser.Name,
+				Msg:      input,
+				Lamport:  0,
+			}
+			_, _ = client.SendMessage(context.Background(), msg1)
+
+		}
 	}
+	wg.Wait()
+}
 
 	for {
 	}
