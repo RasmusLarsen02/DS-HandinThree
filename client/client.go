@@ -2,10 +2,14 @@ package main
 
 import (
 	proto "ChittyChat/grpc"
+	"bufio"
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"os/user"
+	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
