@@ -46,6 +46,9 @@ func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.Chit
 
 	cs.Broadcast(message)
 
+	for {
+		time.Sleep(1 * time.Second)
+	}
 	return nil
 }
 
