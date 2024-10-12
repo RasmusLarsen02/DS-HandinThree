@@ -25,6 +25,7 @@ func (cs *ChittyChatServer) SendMessage(ctx context.Context, in *proto.Message) 
 
 func (cs *ChittyChatServer) Broadcast(message *proto.Message) {
 	cs.server_lamport++
+	message.Lamport = cs.server_lamport
 	for _, stream := range cs.users {
 		stream.Send(message)
 	}
