@@ -72,8 +72,14 @@ func main() {
 	wg.Wait()
 }
 
+func PrintMessages(outputCh chan string) {
 	for {
+		msg := <-outputCh
+		mu.Lock()
+		fmt.Println(msg)
+		mu.Unlock()
 	}
+
 }
 
 	for {
