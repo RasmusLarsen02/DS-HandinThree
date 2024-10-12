@@ -3,8 +3,10 @@ package main
 import (
 	proto "ChittyChat/grpc"
 	"context"
+	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -16,6 +18,7 @@ type ChittyChatServer struct {
 }
 
 func (cs *ChittyChatServer) SendMessage(ctx context.Context, in *proto.Message) (*proto.Empty, error) {
+	fmt.Println("Message recieved")
 	cs.Broadcast(in)
 	return &proto.Empty{}, nil
 }
