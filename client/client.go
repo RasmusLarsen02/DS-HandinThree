@@ -38,26 +38,14 @@ func main() {
 	}
 
 	stream, _ := client.JoinServer(context.Background(), user)
-	go Listen(stream)
 
-	time.Sleep(1000)
-	msg1 := &proto.Message{
-		Username: currentUser.Username,
-		Msg:      "Hello Every One!",
-		Lamport:  0,
 	}
-	_, _ = client.SendMessage(context.Background(), msg1)
 
 	for {
 	}
 }
 
-func Listen(stream grpc.ServerStreamingClient[proto.Message]) {
 	for {
-		msg, _ := stream.Recv()
-		if msg == nil {
-			continue
 		}
-		fmt.Printf("%s : %s (at time %d)", msg.Username, msg.Msg, msg.Lamport)
 	}
 }
