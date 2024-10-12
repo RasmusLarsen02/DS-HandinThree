@@ -82,6 +82,26 @@ func PrintMessages(outputCh chan string) {
 
 }
 
+func Listen(stream proto.ChittyChat_JoinServerClient, msgCh chan<- *proto.Message, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for {
+		msg, err := stream.Recv()
+		if err != nil {
+			log.Printf("Error receiving message: %v", err)
+			return
+		}
+		if msg != nil {
+			msgCh <- msg
+		}
+	}
+}
+
+func ReadInput(inputCh chan<- string, wg *sync.WaitGroup) {
+	time.Sleep(2 * time.Second)
+	defer wg.Done()
+	reader := bufio.NewReader(os.Stdin)
+
 	for {
 		}
 	}
