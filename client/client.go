@@ -103,6 +103,16 @@ func ReadInput(inputCh chan<- string, wg *sync.WaitGroup) {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
+		time.Sleep(1 * time.Second)
+		mu.Lock()
+		fmt.Println("Write your message or type exit to leave: ")
+		mu.Unlock()
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+		if input == "exit" {
+			close(inputCh)
+			return
 		}
+		inputCh <- input
 	}
 }
