@@ -23,6 +23,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Not working")
 	}
+	var wg sync.WaitGroup
+
+	msgCh := make(chan *proto.Message)
+	inputCh := make(chan string)
+	outputCh := make(chan string)
 
 	currentUser, _ := user.Current()
 
