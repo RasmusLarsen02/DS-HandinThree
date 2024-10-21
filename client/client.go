@@ -42,7 +42,7 @@ func main() {
 
 	go Listen(stream, msgCh, &wg)
 
-	go ReadInput(inputCh, &wg)
+	go ReadInput(inputCh, &wg, client)
 
 	go PrintMessages(outputCh)
 
@@ -97,7 +97,7 @@ func Listen(stream proto.ChittyChat_JoinServerClient, msgCh chan<- *proto.Messag
 	}
 }
 
-func ReadInput(inputCh chan<- string, wg *sync.WaitGroup) {
+func ReadInput(inputCh chan<- string, wg *sync.WaitGroup, client proto.ChittyChatClient) {
 	time.Sleep(2 * time.Second)
 	defer wg.Done()
 	reader := bufio.NewReader(os.Stdin)
@@ -111,8 +111,22 @@ func ReadInput(inputCh chan<- string, wg *sync.WaitGroup) {
 		input = strings.TrimSpace(input)
 		if input == "exit" {
 			close(inputCh)
+			LeaveServer(client)
 			return
 		}
 		inputCh <- input
+	}
+}
+
+func LeaveServer(client proto.ChittyChatClient) {
+	currentUser, _ := user.Current()
+	user := &proto.UserJoin{
+		Name:    currentUser.Name,
+		Lamport: 0,
+	}
+
+	_, err := client.JoinServer(context.Background(), user)
+	if err != nil {
+		log.Fatalf("did not work")
 	}
 }

@@ -15,6 +15,11 @@ message UserJoin {
     int32 lamport = 2;
 }
 
+message UserLeave {
+    string name = 1;
+    int32 lamport = 2;
+}
+
 message Empty {
 
 }
@@ -22,4 +27,5 @@ message Empty {
 service ChittyChat {
     rpc SendMessage (Message) returns (Empty);
     rpc JoinServer (UserJoin) returns (stream Message);
+    rpc LeaveServer (UserLeave) returns (Empty);
 }

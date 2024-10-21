@@ -52,6 +52,25 @@ func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.Chit
 	return nil
 }
 
+func (cs *ChittyChatServer) LeaveServer(ctx context.Context, client *proto.UserLeave) (*proto.Empty, error) {
+	if cs.users[client.Name] == nil {
+		log.Fatalf("User doesn't exist")
+	}
+
+	cs.server_lamport++
+
+	delete(cs.users, client.Name)
+	message := &proto.Message{
+		Username: client.Name,
+		Msg:      "User Joined ",
+		Lamport:  cs.server_lamport,
+	}
+
+	cs.Broadcast(message)
+	return &proto.Empty{}, nil
+
+}
+
 func main() {
 
 	cs := &ChittyChatServer{

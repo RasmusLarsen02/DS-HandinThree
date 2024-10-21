@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ChittyChat_SendMessage_FullMethodName = "/proto.ChittyChat/SendMessage"
 	ChittyChat_JoinServer_FullMethodName  = "/proto.ChittyChat/JoinServer"
+	ChittyChat_LeaveServer_FullMethodName = "/proto.ChittyChat/LeaveServer"
 )
 
 // ChittyChatClient is the client API for ChittyChat service.
@@ -29,6 +30,7 @@ const (
 type ChittyChatClient interface {
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error)
 	JoinServer(ctx context.Context, in *UserJoin, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error)
+	LeaveServer(ctx context.Context, in *UserLeave, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type chittyChatClient struct {
@@ -68,12 +70,23 @@ func (c *chittyChatClient) JoinServer(ctx context.Context, in *UserJoin, opts ..
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChittyChat_JoinServerClient = grpc.ServerStreamingClient[Message]
 
+func (c *chittyChatClient) LeaveServer(ctx context.Context, in *UserLeave, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, ChittyChat_LeaveServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChittyChatServer is the server API for ChittyChat service.
 // All implementations must embed UnimplementedChittyChatServer
 // for forward compatibility.
 type ChittyChatServer interface {
 	SendMessage(context.Context, *Message) (*Empty, error)
 	JoinServer(*UserJoin, grpc.ServerStreamingServer[Message]) error
+	LeaveServer(context.Context, *UserLeave) (*Empty, error)
 	mustEmbedUnimplementedChittyChatServer()
 }
 
@@ -89,6 +102,9 @@ func (UnimplementedChittyChatServer) SendMessage(context.Context, *Message) (*Em
 }
 func (UnimplementedChittyChatServer) JoinServer(*UserJoin, grpc.ServerStreamingServer[Message]) error {
 	return status.Errorf(codes.Unimplemented, "method JoinServer not implemented")
+}
+func (UnimplementedChittyChatServer) LeaveServer(context.Context, *UserLeave) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LeaveServer not implemented")
 }
 func (UnimplementedChittyChatServer) mustEmbedUnimplementedChittyChatServer() {}
 func (UnimplementedChittyChatServer) testEmbeddedByValue()                    {}
@@ -140,6 +156,24 @@ func _ChittyChat_JoinServer_Handler(srv interface{}, stream grpc.ServerStream) e
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChittyChat_JoinServerServer = grpc.ServerStreamingServer[Message]
 
+func _ChittyChat_LeaveServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserLeave)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChittyChatServer).LeaveServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChittyChat_LeaveServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChittyChatServer).LeaveServer(ctx, req.(*UserLeave))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChittyChat_ServiceDesc is the grpc.ServiceDesc for ChittyChat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -150,6 +184,10 @@ var ChittyChat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMessage",
 			Handler:    _ChittyChat_SendMessage_Handler,
+		},
+		{
+			MethodName: "LeaveServer",
+			Handler:    _ChittyChat_LeaveServer_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
