@@ -19,7 +19,7 @@ import (
 var mu sync.Mutex
 
 func main() {
-	conn, err := grpc.NewClient("localhost:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("192.168.1.237:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Not working")
 	}
