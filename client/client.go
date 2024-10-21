@@ -120,12 +120,12 @@ func ReadInput(inputCh chan<- string, wg *sync.WaitGroup, client proto.ChittyCha
 
 func LeaveServer(client proto.ChittyChatClient) {
 	currentUser, _ := user.Current()
-	user := &proto.UserJoin{
+	user := &proto.UserLeave{
 		Name:    currentUser.Name,
 		Lamport: 0,
 	}
 
-	_, err := client.JoinServer(context.Background(), user)
+	_, err := client.LeaveServer(context.Background(), user)
 	if err != nil {
 		log.Fatalf("did not work")
 	}
