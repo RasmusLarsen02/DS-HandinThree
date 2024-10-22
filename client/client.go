@@ -6,8 +6,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"os"
 	"os/user"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,7 +21,7 @@ import (
 var mu sync.Mutex
 
 func main() {
-	conn, err := grpc.NewClient("192.168.1.237:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("localhost:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Not working")
 	}
@@ -33,7 +35,7 @@ func main() {
 
 	client := proto.NewChittyChatClient(conn)
 	user := &proto.UserJoin{
-		Name:    currentUser.Name,
+		Name:    currentUser.Username + strconv.Itoa(rand.IntN(1000)),
 		Lamport: 0,
 	}
 
@@ -50,18 +52,19 @@ func main() {
 		select {
 		case msg := <-msgCh:
 			mu.Lock()
-			str := fmt.Sprintf("Message: %s: %s (Lamport: %d)", msg.Username, msg.Msg, msg.Lamport)
+			str := fmt.Sprintf("Message: %s: %s (Lamport: %d) message", msg.Username, msg.Msg, msg.Lamport)
 			outputCh <- str
 			mu.Unlock()
 
-		case input, ok := <-inputCh:
-			if !ok {
+		case input, _ := <-inputCh:
+			if input == "exit" {
 				close(outputCh)
+				LeaveServer(client, user)
 				fmt.Println("Exiting...")
 				return
 			}
 			msg1 := &proto.Message{
-				Username: currentUser.Name,
+				Username: user.Name,
 				Msg:      input,
 				Lamport:  0,
 			}
@@ -110,22 +113,21 @@ func ReadInput(inputCh chan<- string, wg *sync.WaitGroup, client proto.ChittyCha
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 		if input == "exit" {
+			inputCh <- "exit"
 			close(inputCh)
-			LeaveServer(client)
 			return
 		}
 		inputCh <- input
 	}
 }
 
-func LeaveServer(client proto.ChittyChatClient) {
-	currentUser, _ := user.Current()
-	user := &proto.UserLeave{
-		Name:    currentUser.Name,
-		Lamport: 0,
-	}
+func LeaveServer(client proto.ChittyChatClient, user *proto.UserJoin) {
 
-	_, err := client.LeaveServer(context.Background(), user)
+	userl := &proto.UserLeave{
+		Name:    user.Name,
+		Lamport: user.Lamport,
+	}
+	_, err := client.LeaveServer(context.Background(), userl)
 	if err != nil {
 		log.Fatalf("did not work")
 	}
