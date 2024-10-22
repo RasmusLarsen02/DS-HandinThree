@@ -35,7 +35,6 @@ func LogMessage(msg *proto.Message) {
 }
 
 func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.ChittyChat_JoinServerServer) error {
-	fmt.Println("User Joined")
 	if cs.users[client.Name] != nil {
 		log.Fatalf("User already exists")
 	}
@@ -58,7 +57,6 @@ func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.Chit
 }
 
 func (cs *ChittyChatServer) LeaveServer(ctx context.Context, client *proto.UserLeave) (*proto.Empty, error) {
-	fmt.Println("User Left")
 	if cs.users[client.Name] == nil {
 		log.Fatalf("User doesn't exist")
 	}
@@ -71,7 +69,7 @@ func (cs *ChittyChatServer) LeaveServer(ctx context.Context, client *proto.UserL
 		Msg:      "User Left ",
 		Lamport:  cs.server_lamport,
 	}
-
+	LogMessage(message)
 	cs.Broadcast(message)
 
 	for {
@@ -92,7 +90,7 @@ func main() {
 
 func (cs *ChittyChatServer) start_server() {
 	grpcServer := grpc.NewServer()
-	listener, err := net.Listen("tcp", "192.168.1.237:5050")
+	listener, err := net.Listen("tcp", ":5050")
 	if err != nil {
 		log.Fatalf("Did not work")
 	}
