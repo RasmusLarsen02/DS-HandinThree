@@ -52,7 +52,7 @@ func main() {
 		select {
 		case msg := <-msgCh:
 			mu.Lock()
-			str := fmt.Sprintf("Message: %s: %s (Lamport: %d) message", msg.Username, msg.Msg, msg.Lamport)
+			str := fmt.Sprintf("%s: %s (Lamport: %d)", msg.Username, msg.Msg, msg.Lamport)
 			outputCh <- str
 			mu.Unlock()
 

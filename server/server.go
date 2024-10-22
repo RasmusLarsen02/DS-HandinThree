@@ -3,7 +3,6 @@ package main
 import (
 	proto "ChittyChat/grpc"
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -18,17 +17,21 @@ type ChittyChatServer struct {
 }
 
 func (cs *ChittyChatServer) SendMessage(ctx context.Context, in *proto.Message) (*proto.Empty, error) {
-	fmt.Println("Message recieved")
+	cs.server_lamport++
+	in.Lamport = cs.server_lamport
+	LogMessage(in)
 	cs.Broadcast(in)
 	return &proto.Empty{}, nil
 }
 
 func (cs *ChittyChatServer) Broadcast(message *proto.Message) {
-	cs.server_lamport++
-	message.Lamport = cs.server_lamport
 	for _, stream := range cs.users {
 		stream.Send(message)
 	}
+}
+
+func LogMessage(msg *proto.Message) {
+	log.Printf("Lamport: %d, %s: %s", msg.Lamport, msg.Username, msg.Msg)
 }
 
 func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.ChittyChat_JoinServerServer) error {
@@ -45,6 +48,7 @@ func (cs *ChittyChatServer) JoinServer(client *proto.UserJoin, stream proto.Chit
 		Lamport:  cs.server_lamport,
 	}
 
+	LogMessage(message)
 	cs.Broadcast(message)
 
 	for {
